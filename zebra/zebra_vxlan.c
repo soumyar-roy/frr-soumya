@@ -2361,6 +2361,32 @@ done:
 }
 
 /*
+ * This function only removes the vni from the vni table belonging to the
+ * given vxlan interface. For deletion of vni from the vni table please use
+ * zebra_vxlan_if_vni_del()
+ */
+static int zebra_vxlan_if_vni_remove(struct zebra_if *zif, vni_t vni)
+{
+	struct zebra_vxlan_vni vni_tmp;
+	struct zebra_vxlan_vni_info *vni_info;
+
+	/* This should be called in SVD context only */
+	if (!IS_ZEBRA_VXLAN_IF_SVD(zif)) {
+		if (IS_ZEBRA_DEBUG_KERNEL || IS_ZEBRA_DEBUG_VXLAN)
+			zlog_debug("%s VNI %u vxlan_if %s should be SVD,  skip processing",
+				   __func__, vni, zif->ifp->name);
+		return 0;
+	}
+
+	vni_info = VNI_INFO_FROM_ZEBRA_IF(zif);
+	memset(&vni_tmp, 0, sizeof(vni_tmp));
+	vni_tmp.vni = vni;
+
+	(void *)hash_release(vni_info->vni_table, &vni_tmp);
+	return 0;
+}
+
+/*
  * Handle transition of vni from l2 to l3 and vice versa.
  * This function handles only the L2VNI add/delete part of
  * the above transition.
@@ -2465,6 +2491,14 @@ static int zebra_vxlan_handle_vni_transition(struct zebra_vrf *zvrf, vni_t vni,
 			zebra_evpn_send_add_to_client(zevpn);
 			zebra_evpn_read_mac_neigh(zevpn, ctx.ret_ifp);
 		}
+
+		/* unlink the vni from vni_table of zif belonging to l3
+		 * vxlan interface.
+		 */
+		if (IS_ZEBRA_DEBUG_VXLAN)
+			zlog_debug("L2-VNI:%d transition from L3-VNI, unlink from %s vni_info table",
+				   vni, ctx.ret_ifp->name);
+		zebra_vxlan_if_vni_remove(zif, vni);
 	}
 
 	return 0;
