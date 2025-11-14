@@ -3221,7 +3221,6 @@ static void process_subq_early_route_delete(struct zebra_early_route *ere)
 					vtep_ip.ipa_type = IPADDR_V6;
 					vtep_ip.ipaddr_v6 = tmp_nh->gate.ipv6;
 				}
-				/* zebra_rib_queue_evpn_route_del(re->vrf_id, &vtep_ip, &ere->p); */
 			}
 		}
 
