@@ -2371,7 +2371,7 @@ done:
  * given vxlan interface. For deletion of vni from the vni table please use
  * zebra_vxlan_if_vni_del()
  */
-static int zebra_vxlan_if_vni_remove(struct zebra_if *zif, vni_t vni)
+static void zebra_vxlan_if_vni_remove(struct zebra_if *zif, vni_t vni)
 {
 	struct zebra_vxlan_vni vni_tmp;
 	struct zebra_vxlan_vni_info *vni_info;
@@ -2381,7 +2381,6 @@ static int zebra_vxlan_if_vni_remove(struct zebra_if *zif, vni_t vni)
 		if (IS_ZEBRA_DEBUG_KERNEL || IS_ZEBRA_DEBUG_VXLAN)
 			zlog_debug("%s VNI %u vxlan_if %s should be SVD,  skip processing",
 				   __func__, vni, zif->ifp->name);
-		return 0;
 	}
 
 	vni_info = VNI_INFO_FROM_ZEBRA_IF(zif);
@@ -2389,7 +2388,6 @@ static int zebra_vxlan_if_vni_remove(struct zebra_if *zif, vni_t vni)
 	vni_tmp.vni = vni;
 
 	(void *)hash_release(vni_info->vni_table, &vni_tmp);
-	return 0;
 }
 
 /*
