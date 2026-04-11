@@ -4709,6 +4709,9 @@ int bgp_delete(struct bgp *bgp)
 
 	bgp_cleanup_routes(bgp);
 
+	if (bm->terminating)
+		bgp_evpn_cleanup(bgp);
+
 	for (afi = 0; afi < AFI_MAX; ++afi) {
 		if (!bgp->vpn_policy[afi].import_redirect_rtlist)
 			continue;
